@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/images/pokeball.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jacquard+12&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/editor.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>Editor</title>
+</head>
+<body>
+    <article>
+        <div class="article-container">
+            <div class="buttons">
+                <button class="btn" id="publish">Publish</button>
+                <button class="btn" id="saveDraft">Draft</button>
+                <button class="btn" id="delete">Delete</button>
+            </div>
+
+            <div class="title">
+                <h1 class="editable title" contenteditable="true">Title</h1>
+            </div>
+
+            <div class="article-content">
+                <p class="editable firstParagraph" contenteditable="true">Share your thoughts...</p>
+            </div>
+        </div>
+    </article>
+
+    <script type="text/javascript">
+        var articleContent = $(".editable");
+        var articleFirstParagraph = $(".firstParagraph");
+        var articleTitle = $(".title");
+
+        const defaultHTMLParagraphElementContent = {
+                title: "Title",
+                firstParagraph: "Share your thoughts...",
+        }
+
+        function replaceBlankHTMLElementWithDefaultContent() {
+            var currentContent = $(this).html().trim();
+
+            // Sometimes currentContent will contain a <br> value
+            // I do not understand WHY it happens but this accounts for it
+            if (currentContent === "<br>" || currentContent === "") {
+                // All editable content have 2 classes: the generic editable and a
+                // specific class that specifies whether it's a paragraph or a title
+                // Due to that, we perform a slice, to only include the specific class
+                const textObjectClass = $(this).attr("class").slice(9);
+                const defaultObjectText = defaultHTMLParagraphElementContent[textObjectClass] || "New paragraph";
+
+                $(this).html(defaultObjectText);
+            }
+        }
+
+        function addNewParagraphUponHittingEnter(e) {
+            if (e.key == "Enter") {
+                e.preventDefault();
+                let newParagraph = $("<p class='editable newParagaph' contenteditable='true'>New paragraph</p>");
+                $(this).after(newParagraph);
+                
+                newParagraph.on("keydown", addNewParagraphUponHittingEnter);
+                newParagraph.on("click", deleteDefaultTextUponUserInteraction);
+                newParagraph.on("focusout", replaceBlankHTMLElementWithDefaultContent);
+            }
+        }
+
+        function deleteDefaultTextUponUserInteraction() {
+            var currentContent = $(this).html().trim();
+
+            const contents = [defaultHTMLParagraphElementContent.title, defaultHTMLParagraphElementContent.firstParagraph, "New paragraph"];
+            if (contents.includes(currentContent)) 
+                $(this).html("");
+        }
+
+        articleContent.on("click", deleteDefaultTextUponUserInteraction);
+
+        articleContent.on("focusout", replaceBlankHTMLElementWithDefaultContent);
+
+        // Ensures titles will only account for 1 line
+        articleTitle.on("keydown", function(e){
+            if (e.key == "Enter") {
+                e.preventDefault();
+            }
+        });
+
+        articleFirstParagraph.on("keydown", addNewParagraphUponHittingEnter);
+    </script>
+</body>
+</html>
